@@ -2,7 +2,7 @@ import os
 import json
 import torch
 import zipfile
-from zipfile import ZipFile
+import shutil
 from transformers import pipeline
 from diffusers.models import AutoencoderKL
 from diffusers import StableDiffusionPipeline
@@ -78,12 +78,9 @@ def inference(model_inputs:dict) -> dict:
     #Compressed model to half size (4Gb -> 2Gb) to save space
     #compress = os.system("python convert_diffusers_to_original_stable_diffusion.py --model_path 'stable_diffusion_weights/"+str(steps)+"/' --checkpoint_path ./model.ckpt --half")
     #print(compress)
-    with zipfile.ZipFile('weights.zip', 'w', compression=zipfile.ZIP_DEFLATED) as arch:
-        for f in os.listdir(f'stable_diffusion_weights/{steps}'):
-            if os.path.isfile(f):
-                arch.write(f)
+    shutil.make_archive("weights", "zip", "stable_diffusion_weights")
 
-    chkpBucketFile = 'weights/'+data_file_id+'.zip'
+    chkpBucketFile = f'weights/{data_file_id}.zip'
     print(f"uploading {weightsBucketFile}")
     s3client.fput_object(
         s3bucket, weightsBucketFile, "weights.zip",
