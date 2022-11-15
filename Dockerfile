@@ -16,8 +16,17 @@ RUN pip3 install --upgrade pip
 ADD requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
+ARG S3_ENDPOINT=""
+ENV S3_ENDPOINT="${S3_ENDPOINT}"
+ARG S3_BUCKET=""
+ENV S3_BUCKET="${S3_BUCKET}"
+ARG S3_KEY=""
+ENV S3_KEY="${S3_KEY}"
+ARG S3_SECRET=""
+ENV S3_SECRET="${S3_SECRET}"
 # Add your huggingface auth key here, define models
-ENV HF_AUTH_TOKEN=""
+ARG HF_AUTH_TOKEN=""
+ENV HF_AUTH_TOKEN="${HF_AUTH_TOKEN}"
 ENV MODEL_NAME="runwayml/stable-diffusion-v1-5"
 ENV OUTPUT_DIR="stable_diffusion_weights/"
 
@@ -31,7 +40,6 @@ ADD download.py .
 RUN python3 download.py
 
 #Add training/important script
-ADD googledrive.py .
 ADD convert_diffusers_to_original_stable_diffusion.py .
 ADD train_dreambooth.py .
 ADD train.sh .
