@@ -10,7 +10,6 @@ bitsandbytes-cuda116
 ninja
 natsort
 scipy
-boto3
 OmegaConf
 numpy
 deepspeed

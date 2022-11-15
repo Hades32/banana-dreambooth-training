@@ -32,7 +32,7 @@ def init():
         torch_dtype=torch.float16, 
         revision="fp16"
     ).to("cuda")
-    print("done")
+    print("init done")
 
 # Inference is ran for every server call
 # Reference your preloaded global model variable here.
@@ -43,8 +43,9 @@ def inference(model_inputs:dict) -> dict:
     # Parse out arguments
     data_file_id = model_inputs.get('file_id', None)
 
-    #From parameter file_id download the zip from UploadedPics folder
-    s3client.fget_object(s3bucket, 'inputs/'+data_file_id+'.zip', 'sks.zip')
+    inputS3object = 'inputs/'+data_file_id+'.zip'
+    print(f"downloading {inputS3object}")
+    s3client.fget_object(s3bucket, inputS3object, 'sks.zip')
 
     # Setup concepts_list
     concepts_list = [
@@ -69,19 +70,24 @@ def inference(model_inputs:dict) -> dict:
         f.extractall('data/sks')
     
     #Call training script
+    steps = 1200 # see train.sh
     train = os.system("bash train.sh")
     print(train)
 
-    #Compressed model to half size (4Gb -> 2Gb) to save space in gdrive folder: Models/
-    steps = 1200
-    compress = os.system("python convert_diffusers_to_original_stable_diffusion.py --model_path 'stable_diffusion_weights/"+str(steps)+"/' --checkpoint_path ./model.ckpt --half")
-    print(compress)
+    print("compressing")
+    #Compressed model to half size (4Gb -> 2Gb) to save space
+    #compress = os.system("python convert_diffusers_to_original_stable_diffusion.py --model_path 'stable_diffusion_weights/"+str(steps)+"/' --checkpoint_path ./model.ckpt --half")
+    #print(compress)
+    with zipfile.ZipFile('weights.zip', 'w', compression=zipfile.ZIP_DEFLATED) as arch:
+        for f in os.listdir(f'stable_diffusion_weights/{steps}'):
+            if os.path.isfile(f):
+                arch.write(f)
 
-    #Upload model.ckpt file to gdrive Folder: Models/
-    chkpBucketFile = 'chkp/'+data_file_id+'.ckpt'
+    chkpBucketFile = 'weights/'+data_file_id+'.zip'
+    print(f"uploading {weightsBucketFile}")
     s3client.fput_object(
-        s3bucket, chkpBucketFile, "model.ckpt",
+        s3bucket, weightsBucketFile, "weights.zip",
     )
 
     # Return the results as a dictionary
-    return {'response': str(chkpBucketFile)}
+    return {'response': str(weightsBucketFile)}

@@ -9,7 +9,7 @@ accelerate launch train_dreambooth.py \
   --pretrained_vae_name_or_path="stabilityai/sd-vae-ft-mse" \
   --output_dir=$OUTPUT_DIR \
   --with_prior_preservation --prior_loss_weight=1.0 \
-  --seed=3434554 \
+  --seed=4242 \
   --resolution=512 \
   --train_batch_size=1 \
   --train_text_encoder \
