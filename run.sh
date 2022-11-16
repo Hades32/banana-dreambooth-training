@@ -10,6 +10,11 @@ callID=$(curl -s -XPOST 'https://api.banana.dev/start/v4/' -H 'Content-Type: app
     "apiKey": "'$API_KEY'",
     "modelKey": "'$MODEL_KEY'",
     "modelInputs": {
+        "S3_ENDPOINT": "'$S3_ENDPOINT'",
+        "S3_BUCKET": "'$S3_BUCKET'",
+        "S3_KEY": "'$S3_KEY'",
+        "S3_SECRET": "'$S3_SECRET'",
+        "S3_REGION": "'$S3_REGION'",
         "file_id": "input-1"
     }
 }' | jq -j .callID)
