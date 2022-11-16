@@ -1,4 +1,5 @@
 import os
+import time
 import json
 import torch
 import zipfile
@@ -10,19 +11,9 @@ from diffusers import StableDiffusionPipeline
 from minio import Minio
 from minio.error import S3Error
 
-s3bucket = os.environ["S3_BUCKET"]
-s3client = Minio(
-    os.environ["S3_ENDPOINT"],
-    access_key=os.environ["S3_KEY"],
-    secret_key=os.environ["S3_SECRET"],
-    region=os.environ["S3_REGION"],
-)
-
 # Init is ran on server startup
 # Load your model to GPU as a global variable here using the variable name "model"
 def init():
-    if os.environ["S3_ENDPOINT"] == "":
-        raise RuntimeError("S3_ENDPOINT not set")
     # global vae
     # model = "runwayml/stable-diffusion-v1-5"
     # vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse")
@@ -43,7 +34,17 @@ def inference(model_inputs:dict) -> dict:
     #global vae
 
     # Parse out arguments
+    s3bucket = model_inputs.get("S3_BUCKET", os.getenv("S3_BUCKET"))
+    s3client = Minio(
+        model_inputs.get("S3_ENDPOINT", os.getenv("S3_ENDPOINT")),
+        access_key=model_inputs.get("S3_KEY", os.getenv("S3_KEY")),
+        secret_key=model_inputs.get("S3_SECRET", os.getenv("S3_SECRET")),
+        region=model_inputs.get("S3_REGION", os.getenv("S3_REGION"))
+    )
     data_file_id = model_inputs.get('file_id', None)
+
+    if data_file_id is None:
+        return {error: "no input"}
 
     inputS3object = 'inputs/'+data_file_id+'.zip'
     print(f"downloading {inputS3object}")
@@ -82,11 +83,13 @@ def inference(model_inputs:dict) -> dict:
     #print(compress)
     shutil.make_archive("weights", "zip", f"stable_diffusion_weights/{steps}")
 
-    weightsBucketFile = f'weights/{data_file_id}.zip'
+    uploadStart = time.monotonic_ns()
+    weightsBucketFile = f'weights/{data_file_id}_{uploadStart}.zip'
     print(f"uploading {weightsBucketFile}")
     s3client.fput_object(
         s3bucket, weightsBucketFile, "weights.zip",
     )
+    print(f"finished uploading in {(time.monotonic_ns() - uploadStart)/1_000_000_000}s")
 
     # Return the results as a dictionary
     return {'response': str(weightsBucketFile)}
