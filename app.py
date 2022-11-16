@@ -72,7 +72,7 @@ def inference(model_inputs:dict) -> dict:
     #Call training script
     steps = 1200 # see train.sh
     train = os.system("bash train.sh")
-    print(train)
+    print("training result", train)
 
     print("compressing")
     #Compressed model to half size (4Gb -> 2Gb) to save space
@@ -80,7 +80,7 @@ def inference(model_inputs:dict) -> dict:
     #print(compress)
     shutil.make_archive("weights", "zip", "stable_diffusion_weights")
 
-    chkpBucketFile = f'weights/{data_file_id}.zip'
+    weightsBucketFile = f'weights/{data_file_id}.zip'
     print(f"uploading {weightsBucketFile}")
     s3client.fput_object(
         s3bucket, weightsBucketFile, "weights.zip",
