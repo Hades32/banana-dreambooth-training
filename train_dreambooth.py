@@ -31,6 +31,8 @@ torch.backends.cudnn.benchmark = True
 
 logger = get_logger(__name__)
 
+def dummy_safety_checker(images, clip_input):
+    return images, false
 
 def parse_args(input_args=None):
     parser = argparse.ArgumentParser(description="Simple example of a training script.")
@@ -450,7 +452,7 @@ def main(args):
                             revision=None if args.pretrained_vae_name_or_path else args.revision
                         ),
                         torch_dtype=torch_dtype,
-                        safety_checker=None,
+                        safety_checker=dummy_safety_checker,
                         revision=args.revision
                     )
                     pipeline.set_progress_bar_config(disable=True)
@@ -682,7 +684,7 @@ def main(args):
                     subfolder=None if args.pretrained_vae_name_or_path else "vae",
                     revision=None if args.pretrained_vae_name_or_path else args.revision
                 ),
-                safety_checker=None,
+                safety_checker=dummy_safety_checker,
                 scheduler=scheduler,
                 torch_dtype=torch.float16,
                 revision=args.revision,

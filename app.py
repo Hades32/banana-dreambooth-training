@@ -21,24 +21,26 @@ s3client = Minio(
 # Init is ran on server startup
 # Load your model to GPU as a global variable here using the variable name "model"
 def init():
-    global vae
-    model = "runwayml/stable-diffusion-v1-5"
-    vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse")
+    if os.environ["S3_ENDPOINT"] == "":
+        raise RuntimeError("S3_ENDPOINT not set")
+    # global vae
+    # model = "runwayml/stable-diffusion-v1-5"
+    # vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse")
     
-    global pipe
-    pipe = StableDiffusionPipeline.from_pretrained(
-        model, 
-        vae=vae, 
-        torch_dtype=torch.float16, 
-        revision="fp16"
-    ).to("cuda")
+    # global pipe
+    # pipe = StableDiffusionPipeline.from_pretrained(
+    #     model, 
+    #     vae=vae, 
+    #     torch_dtype=torch.float16, 
+    #     revision="fp16"
+    # ).to("cuda")
     print("init done")
 
 # Inference is ran for every server call
 # Reference your preloaded global model variable here.
 def inference(model_inputs:dict) -> dict:
-    global model
-    global vae
+    #global model
+    #global vae
 
     # Parse out arguments
     data_file_id = model_inputs.get('file_id', None)
@@ -78,7 +80,7 @@ def inference(model_inputs:dict) -> dict:
     #Compressed model to half size (4Gb -> 2Gb) to save space
     #compress = os.system("python convert_diffusers_to_original_stable_diffusion.py --model_path 'stable_diffusion_weights/"+str(steps)+"/' --checkpoint_path ./model.ckpt --half")
     #print(compress)
-    shutil.make_archive("weights", "zip", "stable_diffusion_weights")
+    shutil.make_archive("weights", "zip", f"stable_diffusion_weights/{steps}")
 
     weightsBucketFile = f'weights/{data_file_id}.zip'
     print(f"uploading {weightsBucketFile}")
