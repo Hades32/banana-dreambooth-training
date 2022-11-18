@@ -15,24 +15,19 @@ callID=$(curl -s -XPOST 'https://api.banana.dev/start/v4/' -H 'Content-Type: app
         "S3_KEY": "'$S3_KEY'",
         "S3_SECRET": "'$S3_SECRET'",
         "S3_REGION": "'$S3_REGION'",
-        "file_id": "input-1"
+        "file_id": "rita"
     }
 }' | jq -j .callID)
 
 echo "started ${callID} at ${start}"
 
-while curl -s -XPOST 'https://api.banana.dev/check/v4/' -H 'Content-Type: application/json' -d'
+while export result=$(curl -s -XPOST 'https://api.banana.dev/check/v4/' -H 'Content-Type: application/json' -d'
 {    
     "apiKey": "'$API_KEY'",    
     "callID": "'$callID'"
-}' | grep running > /dev/null ; do 
+}') && echo "$result" | grep running > /dev/null ; do 
     echo -n .
 done
 
-echo
-curl -s -XPOST 'https://api.banana.dev/check/v4/' -H 'Content-Type: application/json' -d'
-{    
-    "apiKey": "'$API_KEY'",    
-    "callID": "'$callID'"
-}' | jq .
+echo "$result" | jq .
 echo "$start until $(date)"

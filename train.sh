@@ -23,6 +23,5 @@ accelerate launch train_dreambooth.py \
   --sample_batch_size=1 \
   --max_train_steps=$NUM_STEPS \
   --save_interval=$NUM_STEPS \
-  --save_sample_prompt="photo of sks person" \
   --concepts_list="concepts_list.json" \
   --pad_tokens
