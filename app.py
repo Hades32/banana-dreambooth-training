@@ -87,7 +87,7 @@ def inference(model_inputs:dict) -> dict:
     weightsBucketFile = f'weights/{data_file_id}_{uploadStart}.zip'
     print(f"uploading {weightsBucketFile}")
     s3client.fput_object(
-        s3bucket, weightsBucketFile, "weights.zip",
+        s3bucket, weightsBucketFile, "weights.zip", part_size=100*1024*1024,
     )
     print(f"finished uploading in {(time.monotonic_ns() - uploadStart)/1_000_000_000}s")
 
